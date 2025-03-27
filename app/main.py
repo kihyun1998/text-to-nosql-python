@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pymongo import MongoClient
+from bson import json_util
+import json
 from dummy_data import generate_dummy_users, generate_dummy_orders, generate_dummy_products
 
 app = FastAPI()
@@ -27,3 +29,34 @@ def init_all():
         "orders": len(orders),
         "message": "Collections initialized"
     }
+
+# MongoDB 객체를 JSON으로 변환하는 헬퍼 함수
+def parse_json(data):
+    return json.loads(json_util.dumps(data))
+
+# 모든 사용자 조회 API
+@app.get("/users")
+def get_all_users():
+    try:
+        users = list(db["users"].find({}))
+        return parse_json(users)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve users: {str(e)}")
+
+# 모든 제품 조회 API
+@app.get("/products")
+def get_all_products():
+    try:
+        products = list(db["products"].find({}))
+        return parse_json(products)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve products: {str(e)}")
+
+# 모든 주문 조회 API
+@app.get("/orders")
+def get_all_orders():
+    try:
+        orders = list(db["orders"].find({}))
+        return parse_json(orders)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve orders: {str(e)}")
